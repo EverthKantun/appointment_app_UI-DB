@@ -1,16 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
-import 'pages/login_page.dart';
-import 'pages/register_page.dart';
-import 'pages/forgot_password_page.dart';
-import 'pages/home_page.dart';
+import 'routes/app_routes.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   runApp(const MyApp());
 }
 
@@ -20,19 +15,14 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      title: 'Medical App',
       debugShowCheckedModeBanner: false,
-      title: 'Citas Médicas',
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.teal),
-        useMaterial3: true,
+        primarySwatch: Colors.blue,
+        scaffoldBackgroundColor: Colors.white,
       ),
-      initialRoute: '/login',
-      routes: {
-        '/login': (_) => const LoginPage(),
-        '/register': (_) => const RegisterPage(),
-        '/forgot-password': (_) => const ForgotPasswordPage(),
-        '/home': (_) => HomePage(),
-      },
+      initialRoute: AppRoutes.login,
+      routes: AppRoutes.routes,
     );
   }
 }

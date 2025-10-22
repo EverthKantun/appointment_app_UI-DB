@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
 import '../widgets/custom_text_field.dart';
 import '../widgets/custom_button.dart';
+import '../services/database_service.dart';
+
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -13,6 +15,8 @@ class RegisterPage extends StatefulWidget {
 class _RegisterPageState extends State<RegisterPage> {
   final AuthService _authService = AuthService();
   final _formKey = GlobalKey<FormState>();
+  final DatabaseService _databaseService = DatabaseService();
+
 
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
@@ -20,33 +24,44 @@ class _RegisterPageState extends State<RegisterPage> {
 
   bool _isLoading = false;
 
-  Future<void> _register() async {
-    if (_formKey.currentState!.validate()) {
-      if (passwordController.text != confirmPasswordController.text) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Las contraseñas no coinciden')),
-        );
-        return;
-      }
-
-      setState(() => _isLoading = true);
-
-      final user = await _authService.registerWithEmail(
-        emailController.text.trim(),
-        passwordController.text.trim(),
+Future<void> _register() async {
+  if (_formKey.currentState!.validate()) {
+    if (passwordController.text != confirmPasswordController.text) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Las contraseñas no coinciden')),
       );
+      return;
+    }
 
-      setState(() => _isLoading = false);
+    setState(() => _isLoading = true);
 
-      if (user != null && mounted) {
-        Navigator.pushReplacementNamed(context, '/home');
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Error al registrarse')),
-        );
-      }
+    final user = await _authService.registerWithEmail(
+      emailController.text.trim(),
+      passwordController.text.trim(),
+    );
+
+    setState(() => _isLoading = false);
+
+    if (user != null && mounted) {
+      // Guardar los datos del usuario en Firestore
+      await _databaseService.addUser(user.uid, {
+        'nombre': user.email!.split('@')[0],
+        'email': user.email,
+        'telefono': '',
+        'foto_url': '',
+        'historial_medico': '',
+        'fecha_registro': DateTime.now(),
+      });
+
+      Navigator.pushReplacementNamed(context, '/home', arguments: user.uid);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Error al registrarse')),
+      );
     }
   }
+}
+
 
   @override
   Widget build(BuildContext context) {
