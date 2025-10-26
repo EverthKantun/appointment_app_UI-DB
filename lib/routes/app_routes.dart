@@ -7,7 +7,6 @@ import '../pages/profile_page.dart';
 import '../pages/appointment_page.dart';
 import '../pages/tips_page.dart';
 import '../pages/messages_page.dart';
-import '../pages/calendar_page.dart';
 import '../pages/settings_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
@@ -33,7 +32,6 @@ class AppRoutes {
     appointment: (context) => AppointmentPage(userId: FirebaseAuth.instance.currentUser!.uid,),
     tips: (context) => const TipsPage(),
     messages: (context) => const MessagesPage(),
-    calendar: (context) => const CalendarPage(),
     settings: (context) => const SettingsPage(),
   };
 }

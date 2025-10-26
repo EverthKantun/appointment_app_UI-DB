@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'appointment_page.dart'; 
+import 'appointment_page.dart';
 
 class DoctorsPage extends StatelessWidget {
   final String especialidad;
@@ -71,15 +71,17 @@ class DoctorsPage extends StatelessWidget {
             itemBuilder: (context, index) {
               final doc = docs[index];
               final nombre = doc['nombre'] ?? 'Nombre no disponible';
-              final disponibilidad = doc['disponibilidad'] ?? 'Horario no especificado';
+              final disponibilidad = doc['disponibilidad'];
               final foto = doc['foto_url'] ?? '';
               final cedula = doc['cedula'] ?? 'Sin cédula';
               final telefono = doc['telefono'] ?? 'Sin teléfono';
               final email = doc['email'] ?? 'Sin correo';
               final ubicacion = doc['ubicacion'] ?? 'Sin ubicación';
-              final experiencia = doc['experiencia'] ?? 'Experiencia no especificada';
+              final experiencia =
+                  doc['experiencia'] ?? 'Experiencia no especificada';
               final calificacion = doc['calificacion'] ?? 0.0;
-              final descripcion = doc['descripcion'] ?? 'Sin descripción disponible';
+              final descripcion =
+                  doc['descripcion'] ?? 'Sin descripción disponible';
 
               return Card(
                 elevation: 4,
@@ -110,7 +112,8 @@ class DoctorsPage extends StatelessWidget {
                                   ? Image.network(
                                       foto,
                                       fit: BoxFit.cover,
-                                      errorBuilder: (context, error, stackTrace) {
+                                      errorBuilder:
+                                          (context, error, stackTrace) {
                                         return Icon(
                                           Icons.person,
                                           size: 40,
@@ -126,7 +129,7 @@ class DoctorsPage extends StatelessWidget {
                             ),
                           ),
                           const SizedBox(width: 12),
-                          
+
                           // Información principal
                           Expanded(
                             child: Column(
@@ -150,7 +153,7 @@ class DoctorsPage extends StatelessWidget {
                                   ),
                                 ),
                                 const SizedBox(height: 6),
-                                
+
                                 // Calificación y experiencia
                                 Row(
                                   children: [
@@ -213,22 +216,15 @@ class DoctorsPage extends StatelessWidget {
 
                       // 🔹 Disponibilidad
                       const SizedBox(height: 12),
-                      const Text(
-                        'Disponibilidad',
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.blueAccent,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        disponibilidad,
-                        style: const TextStyle(
-                          fontSize: 14,
-                          color: Colors.black87,
-                        ),
-                      ),
+                      disponibilidad is Map<String, dynamic>
+                          ? _buildHorarioDisponibilidad(disponibilidad)
+                          : const Text(
+                              'Horario no especificado',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Colors.black87,
+                              ),
+                            ),
 
                       // Información de contacto
                       const SizedBox(height: 12),
@@ -241,29 +237,22 @@ class DoctorsPage extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(height: 8),
-                      
-                      // Ubicación
+
                       _buildContactInfo(
                         icon: Icons.location_on,
                         label: 'Ubicación',
                         value: ubicacion,
                       ),
-                      
-                      // Teléfono
                       _buildContactInfo(
                         icon: Icons.phone,
                         label: 'Teléfono',
                         value: telefono,
                       ),
-                      
-                      // Email
                       _buildContactInfo(
                         icon: Icons.email,
                         label: 'Email',
                         value: email,
                       ),
-                      
-                      // Cédula
                       _buildContactInfo(
                         icon: Icons.badge,
                         label: 'Cédula Profesional',
@@ -300,7 +289,8 @@ class DoctorsPage extends StatelessWidget {
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.blueAccent,
                             foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            padding:
+                                const EdgeInsets.symmetric(vertical: 14),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12),
                             ),
@@ -319,7 +309,68 @@ class DoctorsPage extends StatelessWidget {
     );
   }
 
-  // Widget auxiliar para información de contacto
+  // ============================================================
+  // 🔹 Horario estructurado (Map) — NUEVO
+  // ============================================================
+  Widget _buildHorarioDisponibilidad(Map<String, dynamic> disponibilidad) {
+    final dias = {
+      'lunes': 'Lunes',
+      'martes': 'Martes',
+      'miercoles': 'Miércoles',
+      'jueves': 'Jueves',
+      'viernes': 'Viernes',
+      'sabado': 'Sábado',
+      'domingo': 'Domingo'
+    };
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Horario de Atención',
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: Colors.blueAccent,
+          ),
+        ),
+        const SizedBox(height: 8),
+        ...disponibilidad.entries.map((entry) {
+          final dia = dias[entry.key] ?? entry.key;
+          final horario = entry.value as Map<String, dynamic>;
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 4),
+            child: Row(
+              children: [
+                SizedBox(
+                  width: 80,
+                  child: Text(
+                    '$dia:',
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.grey,
+                    ),
+                  ),
+                ),
+                Text(
+                  '${horario['inicio']} - ${horario['fin']}',
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: Colors.black87,
+                  ),
+                ),
+              ],
+            ),
+          );
+        }).toList(),
+      ],
+    );
+  }
+
+  // ============================================================
+  // 🔹 Información de contacto (igual que antes)
+  // ============================================================
   Widget _buildContactInfo({
     required IconData icon,
     required String label,

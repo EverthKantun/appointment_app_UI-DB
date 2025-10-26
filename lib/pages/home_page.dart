@@ -9,6 +9,7 @@ import 'appointment_page.dart';
 import 'tips_page.dart';
 import 'messages_page.dart';
 import 'settings_page.dart';
+import 'my_appointments_page.dart';
 
 class HomePage extends StatefulWidget {
   final String userId;
@@ -44,6 +45,7 @@ class _HomePageState extends State<HomePage> {
     final List<Widget> pages = [
       _buildInicioPage(userName),
       MessagesPage(userId: widget.userId),
+      MyAppointmentsPage(userId: widget.userId),
       SettingsPage(userId: widget.userId),
     ];
 
@@ -69,6 +71,10 @@ class _HomePageState extends State<HomePage> {
             icon: Icon(Icons.message),
             label: 'Mensajes',
           ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.schedule),
+            label: 'Mis citas',
+          ),          
           BottomNavigationBarItem(
             icon: Icon(Icons.settings),
             label: 'Configuración',
