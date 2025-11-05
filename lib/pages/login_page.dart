@@ -17,20 +17,65 @@ class _LoginPageState extends State<LoginPage> {
   final TextEditingController passwordController = TextEditingController();
   bool _isLoading = false;
 
+  // Expresiones regulares para validación
+  static final RegExp _emailRegExp = RegExp(
+    r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
+  );
+
+  String? _validateEmail(String? value) {
+    if (value == null || value.isEmpty) {
+      return 'Por favor ingresa tu correo electrónico';
+    }
+    
+    if (!_emailRegExp.hasMatch(value)) {
+      return 'Por favor ingresa un correo electrónico válido';
+    }
+    
+    return null;
+  }
+
+  String? _validatePassword(String? value) {
+    if (value == null || value.isEmpty) {
+      return 'Por favor ingresa tu contraseña';
+    }
+    
+    if (value.length < 6) {
+      return 'La contraseña debe tener al menos 6 caracteres';
+    }
+    
+    return null;
+  }
+
   Future<void> _login() async {
+    // Validar todos los campos antes de proceder
     if (_formKey.currentState!.validate()) {
       setState(() => _isLoading = true);
-      final user = await _authService.loginWithEmail(
-        emailController.text.trim(),
-        passwordController.text.trim(),
-      );
-      setState(() => _isLoading = false);
+      
+      try {
+        final user = await _authService.loginWithEmail(
+          emailController.text.trim(),
+          passwordController.text.trim(),
+        );
+        
+        setState(() => _isLoading = false);
 
-      if (user != null && mounted) {
-        Navigator.pushReplacementNamed(context, '/home');
-      } else {
+        if (user != null && mounted) {
+          Navigator.pushReplacementNamed(context, '/home');
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Credenciales incorrectas'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      } catch (e) {
+        setState(() => _isLoading = false);
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Credenciales incorrectas')),
+          SnackBar(
+            content: Text('Error al iniciar sesión: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
         );
       }
     }
@@ -62,6 +107,7 @@ class _LoginPageState extends State<LoginPage> {
                   labelText: 'Correo electrónico',
                   prefixIcon: Icons.email,
                   keyboardType: TextInputType.emailAddress,
+                  validator: _validateEmail,
                 ),
                 const SizedBox(height: 16),
                 CustomTextField(
@@ -69,6 +115,7 @@ class _LoginPageState extends State<LoginPage> {
                   labelText: 'Contraseña',
                   obscureText: true,
                   prefixIcon: Icons.lock,
+                  validator: _validatePassword,
                 ),
                 const SizedBox(height: 24),
                 _isLoading
