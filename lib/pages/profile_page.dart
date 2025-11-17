@@ -18,6 +18,9 @@ class _ProfilePageState extends State<ProfilePage> {
   final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _historyController = TextEditingController();
 
+  // Nueva variable para el rol
+  String? _selectedRole;
+
   @override
   void initState() {
     super.initState();
@@ -28,10 +31,12 @@ class _ProfilePageState extends State<ProfilePage> {
     final doc = await _db.getUser(widget.userId);
     setState(() {
       userData = doc.data() as Map<String, dynamic>?;
+
       if (userData != null) {
         _nameController.text = userData!['nombre'] ?? '';
         _phoneController.text = userData!['telefono'] ?? '';
         _historyController.text = userData!['historial'] ?? '';
+        _selectedRole = userData!['rol']; // ← Cargar rol
       }
     });
   }
@@ -41,12 +46,16 @@ class _ProfilePageState extends State<ProfilePage> {
       'nombre': _nameController.text.trim(),
       'telefono': _phoneController.text.trim(),
       'historial': _historyController.text.trim(),
+      'rol': _selectedRole, // ← Guardar rol actualizado
     };
+
     await _db.updateUser(widget.userId, updatedData);
+
     setState(() {
       _isEditing = false;
       userData = updatedData;
     });
+
     ScaffoldMessenger.of(context)
         .showSnackBar(const SnackBar(content: Text('Perfil actualizado')));
   }
@@ -106,6 +115,7 @@ class _ProfilePageState extends State<ProfilePage> {
                       ],
                     ),
                   ),
+
                   const SizedBox(height: 24),
 
                   // Botón editar/guardar
@@ -122,12 +132,44 @@ class _ProfilePageState extends State<ProfilePage> {
                       child: Text(_isEditing ? 'Guardar' : 'Editar'),
                     ),
                   ),
+
                   const SizedBox(height: 24),
 
                   // Campos de perfil
                   _buildTextField('Nombre', _nameController),
                   _buildTextField('Teléfono', _phoneController),
                   _buildTextField('Historial médico', _historyController, maxLines: 4),
+
+                  const SizedBox(height: 16),
+
+                  // ***** CAMPO NUEVO: Selección de rol *****
+                  Text(
+                    "Tipo de usuario",
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Colors.blueAccent.shade700,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+
+                  DropdownButtonFormField<String>(
+                    value: _selectedRole,
+                    items: const [
+                      DropdownMenuItem(value: "paciente", child: Text("Paciente")),
+                      DropdownMenuItem(value: "medico", child: Text("Médico")),
+                    ],
+                    onChanged: _isEditing
+                        ? (value) {
+                            setState(() => _selectedRole = value);
+                          }
+                        : null,
+                    decoration: InputDecoration(
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                  ),
                 ],
               ),
             ),

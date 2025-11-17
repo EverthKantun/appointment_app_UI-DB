@@ -48,7 +48,39 @@ class DatabaseService {
     });
   }
 
-  /// Genera los horarios (slots) disponibles para un médico en una fecha.
+  /// ---------------------------------------------------------
+  /// NUEVOS MÉTODOS PARA EL DASHBOARD
+  /// ---------------------------------------------------------
+
+  /// Cantidad total de citas de un médico (stream en tiempo real).
+  Stream<int> streamTotalAppointmentsForDoctor(String doctorId) {
+    return _db
+        .collection('citas')
+        .where('id_medico', isEqualTo: doctorId)
+        .snapshots()
+        .map((snap) => snap.size);
+  }
+
+  /// Cantidad de citas pendientes de un médico (estado = pendiente).
+  Stream<int> streamPendingAppointmentsForDoctor(String doctorId) {
+    return _db
+        .collection('citas')
+        .where('id_medico', isEqualTo: doctorId)
+        .where('estado', isEqualTo: 'pendiente')
+        .snapshots()
+        .map((snap) => snap.size);
+  }
+
+  /// Total de pacientes registrados.
+  Stream<int> streamTotalPatients() {
+    return _db
+        .collection('usuarios')
+        .where('rol', isEqualTo: 'paciente')
+        .snapshots()
+        .map((snap) => snap.size);
+  }
+
+  /// Genera los horarios disponibles para un médico.
   Future<List<String>> getAvailableSlots({
     required String doctorId,
     required DateTime date,
@@ -59,7 +91,6 @@ class DatabaseService {
     final disponibilidad = doctorDoc['disponibilidad'] as Map<String, dynamic>;
     final duracionCita = doctorDoc['duracion_cita'] ?? 30;
 
-    // Día de la semana (domingo=0 → sábado=6)
     final diasSemana = [
       'domingo',
       'lunes',
@@ -71,7 +102,6 @@ class DatabaseService {
     ];
     final diaSemana = diasSemana[date.weekday % 7];
 
-    // Verificar si el médico trabaja ese día
     if (!disponibilidad.containsKey(diaSemana)) {
       return [];
     }
@@ -80,7 +110,6 @@ class DatabaseService {
     final horaInicio = _timeToMinutes(horarioDia['inicio']);
     final horaFin = _timeToMinutes(horarioDia['fin']);
 
-    // Citas ya agendadas ese día
     final citasSnapshot = await _db
         .collection('citas')
         .where('id_medico', isEqualTo: doctorId)
@@ -92,7 +121,6 @@ class DatabaseService {
       return _timeToMinutes(doc['hora']);
     }).toList();
 
-    // Generar slots disponibles
     final slotsDisponibles = <String>[];
     for (var time = horaInicio; time < horaFin; time += (duracionCita as int)) {
       if (!citasOcupadas.contains(time)) {
@@ -103,7 +131,6 @@ class DatabaseService {
     return slotsDisponibles;
   }
 
-  /// Verifica si un horario está disponible para agendar.
   Future<bool> isSlotAvailable({
     required String doctorId,
     required DateTime date,
@@ -116,12 +143,10 @@ class DatabaseService {
     return availableSlots.contains(time);
   }
 
-  /// Obtener un médico por su ID
   Future<DocumentSnapshot> getDoctorById(String doctorId) async {
     return await _db.collection('medicos').doc(doctorId).get();
   }
 
-  /// Obtener citas de un médico en una fecha específica
   Future<List<QueryDocumentSnapshot>> getAppointmentsForDoctorOnDate(
       String doctorId, String fecha) async {
     final snapshot = await _db
@@ -132,7 +157,6 @@ class DatabaseService {
     return snapshot.docs;
   }
 
-  /// Obtener citas de un usuario dentro de un rango de fechas
   Future<List<QueryDocumentSnapshot>> getAppointmentsForUserInRange(
       String userId, DateTime from, DateTime to) async {
     final snapshot = await _db
@@ -143,6 +167,7 @@ class DatabaseService {
         .get();
     return snapshot.docs;
   }
+
   int _timeToMinutes(String time) {
     final parts = time.split(':');
     return int.parse(parts[0]) * 60 + int.parse(parts[1]);
@@ -157,4 +182,18 @@ class DatabaseService {
   String _formatDate(DateTime date) {
     return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
   }
+
+    Future<void> addDoctor(String uid, Map<String, dynamic> doctorData) async {
+    await _db.collection('medicos').doc(uid).set(doctorData);
+  }
+
+  Future<List<QueryDocumentSnapshot>> getAppointmentsForDoctor(String doctorId) async {
+  final snapshot = await _db
+      .collection('citas')
+      .where('id_medico', isEqualTo: doctorId)
+      .get();
+
+  return snapshot.docs;
+}
+
 }
