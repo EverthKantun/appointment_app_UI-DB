@@ -20,41 +20,39 @@ class _DoctorAppointmentsPageState extends State<DoctorAppointmentsPage> {
     _loadAppointments();
   }
 
-Future<void> _loadAppointments() async {
-  setState(() => loading = true);
+  Future<void> _loadAppointments() async {
+    setState(() => loading = true);
 
-  try {
-    final docs = await _db.getAppointmentsForDoctor(widget.doctorId);
+    try {
+      final docs = await _db.getAppointmentsForDoctor(widget.doctorId);
 
-    appointments = [];
+      appointments = [];
 
-    for (var d in docs) {
-      final data = d.data() as Map<String, dynamic>;
-      final patientId = data['id_paciente'];
+      for (var d in docs) {
+        final data = d.data() as Map<String, dynamic>;
+        final patientId = data['id_paciente'];
 
-      // Obtener nombre del paciente
-      String nombrePaciente = "Paciente desconocido";
-      try {
-        final userSnap = await _db.getUser(patientId);
-        if (userSnap.exists) {
-          nombrePaciente = userSnap['nombre'] ?? nombrePaciente;
+        String nombrePaciente = "Paciente desconocido";
+
+        try {
+          final userSnap = await _db.getUser(patientId);
+          if (userSnap.exists) {
+            nombrePaciente = userSnap['nombre'] ?? nombrePaciente;
+          }
+        } catch (e) {
+          debugPrint("Error cargando paciente: $e");
         }
-      } catch (e) {
-        debugPrint("Error cargando paciente: $e");
+
+        data['nombre_paciente'] = nombrePaciente;
+
+        appointments.add({'id': d.id, 'data': data});
       }
-
-      // Insertar nombre en el mapa
-      data['nombre_paciente'] = nombrePaciente;
-
-      appointments.add({'id': d.id, 'data': data});
+    } catch (e) {
+      debugPrint('Error doctor citas: $e');
     }
-  } catch (e) {
-    debugPrint('Error doctor citas: $e');
+
+    setState(() => loading = false);
   }
-
-  setState(() => loading = false);
-}
-
 
   Color _estadoColor(String estado) {
     switch (estado.toLowerCase()) {

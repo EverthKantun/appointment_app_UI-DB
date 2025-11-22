@@ -314,36 +314,99 @@ class _DashboardViewState extends State<_DashboardView> {
 
                 const SizedBox(height: 10),
 
-                // Grid de métricas sin título
-                Expanded(
-                  child: GridView.count(
-                    crossAxisCount: 2,
-                    crossAxisSpacing: 16,
-                    mainAxisSpacing: 16,
-                    childAspectRatio: 0.85,
-                    children: [
-                      _buildMetricCard(
-                        Icons.person,
-                        'Pacientes Registrados',
-                        state.totalPatients.toString(),
-                        Colors.green,
-                      ),
-                      _buildMetricCard(
-                        Icons.calendar_today,
-                        'Total Citas',
-                        state.totalAppointments.toString(),
-                        Colors.blue,
-                      ),
-                      _buildMetricCard(
-                        Icons.schedule,
-                        'Citas Pendientes',
-                        state.pendingAppointments.toString(),
-                        Colors.orange,
-                      ),
-                      _buildProfileCard(context),
-                    ],
+// reemplaza el GridView anterior y permite las métricas
+Expanded(
+  child: GridView.count(
+    crossAxisCount: 2,
+    crossAxisSpacing: 16,
+    mainAxisSpacing: 16,
+    childAspectRatio: 0.85,
+    children: [
+      _buildMetricCard(
+        Icons.calendar_today,
+        'Total Citas',
+        state.totalAppointments.toString(),
+        Colors.blue,
+      ),
+      _buildMetricCard(
+        Icons.schedule,
+        'Citas Pendientes',
+        state.pendingAppointments.toString(),
+        Colors.orange,
+      ),
+      // Mis métricas
+      Card(
+        elevation: 4,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16),
+          onTap: () {
+            Navigator.pushNamed(
+              context,
+              '/graphics',
+              arguments: widget.userId,
+            );
+          },
+          child: Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  Colors.teal.withOpacity(0.1),
+                  Colors.teal.withOpacity(0.05),
+                ],
+              ),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(20.0),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(
+                    width: 50,
+                    height: 50,
+                    decoration: BoxDecoration(
+                      color: Colors.teal.withOpacity(0.15),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.show_chart,
+                      size: 24,
+                      color: Colors.teal,
+                    ),
                   ),
-                ),
+                  const SizedBox(height: 16),
+                  const Text(
+                    'Mis Métricas',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.grey,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Ver estadísticas',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.teal,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+      _buildProfileCard(context),
+    ],
+  ),
+),
+
 
                 const SizedBox(height: 10),
 
